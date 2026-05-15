@@ -9,7 +9,7 @@ export default function ProductCard({ product }) {
     <motion.div
       whileHover={{ y: -6, boxShadow: '0 8px 40px rgba(0,0,0,0.14)' }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="bg-gray-50 rounded-2xl overflow-hidden cursor-pointer"
+      className="bg-gray-50 rounded-2xl overflow-hidden cursor-none"
     >
       {/* Image area */}
       <div className="relative bg-white p-8 h-[240px] flex items-center justify-center overflow-hidden group">
@@ -64,9 +64,13 @@ export default function ProductCard({ product }) {
         </div>
         <div className="flex items-center justify-between">
           <div>
-            <span className="font-display text-[1.2rem] font-bold text-black">${product.price}</span>
+            <span className="font-display text-[1.2rem] font-bold text-black">
+              ${product.price}
+            </span>
             {product.oldPrice && (
-              <span className="text-sm text-gray-400 line-through ml-2">${product.oldPrice}</span>
+              <span className="text-sm text-gray-400 line-through ml-2">
+                ${product.oldPrice}
+              </span>
             )}
           </div>
           <motion.button
