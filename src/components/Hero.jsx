@@ -1,21 +1,26 @@
+import { Suspense, lazy } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Zap } from 'lucide-react';
 
+const Speaker3D = lazy(() => import('./Speaker3D'));
+
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
-  show:   { opacity: 1, y: 0 },
+  show: { opacity: 1, y: 0 },
 };
 
 export default function Hero() {
   return (
     <section className="grid grid-cols-1 lg:grid-cols-2 min-h-[calc(100vh-110px)] overflow-hidden">
-
       {/* ── Left: content ── */}
       <motion.div
         className="bg-gray-50 flex flex-col justify-center px-10 py-20 lg:px-24"
         initial="hidden"
         animate="show"
-        variants={{ hidden: {}, show: { transition: { staggerChildren: 0.1 } } }}
+        variants={{
+          hidden: {},
+          show: { transition: { staggerChildren: 0.1 } },
+        }}
       >
         {/* Label */}
         <motion.div
@@ -34,8 +39,12 @@ export default function Hero() {
           className="font-display font-bold leading-none tracking-tight text-black mb-6"
           style={{ fontSize: 'clamp(3rem, 6vw, 5.5rem)' }}
         >
-          Next-Gen<br />
-          <span className="[-webkit-text-stroke:2px_#0a0a0a] text-transparent">Audio</span><br />
+          Next-Gen
+          <br />
+          <span className="[-webkit-text-stroke:2px_#0a0a0a] text-transparent">
+            Audio
+          </span>
+          <br />
           Redefined
         </motion.h1>
 
@@ -45,8 +54,8 @@ export default function Hero() {
           transition={{ duration: 0.5 }}
           className="text-gray-500 text-base leading-7 max-w-md mb-10"
         >
-          Experience sound like never before. Premium speakers, headphones, and smart devices
-          engineered for those who demand the best.
+          Experience sound like never before. Premium speakers, headphones, and
+          smart devices engineered for those who demand the best.
         </motion.p>
 
         {/* CTAs */}
@@ -75,32 +84,45 @@ export default function Hero() {
           transition={{ duration: 0.5 }}
           className="flex gap-10 mt-12 pt-8 border-t border-gray-200"
         >
-          {[['500+', 'Products'], ['98%', 'Satisfaction'], ['50K+', 'Customers']].map(([num, label]) => (
+          {[
+            ['500+', 'Products'],
+            ['98%', 'Satisfaction'],
+            ['50K+', 'Customers'],
+          ].map(([num, label]) => (
             <div key={label}>
-              <div className="font-display text-[1.8rem] font-bold text-black leading-none">{num}</div>
+              <div className="font-display text-[1.8rem] font-bold text-black leading-none">
+                {num}
+              </div>
               <div className="text-xs text-gray-500 mt-1">{label}</div>
             </div>
           ))}
         </motion.div>
       </motion.div>
 
-      {/* ── Right: product image ── */}
-      <div className="bg-black relative flex items-center justify-center min-h-[400px] lg:min-h-auto overflow-hidden">
-        {/* Radial glow */}
-        <div className="absolute w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,rgba(198,241,53,0.15)_0%,transparent_70%)]" />
+      {/* ── Right: 3D Speaker ── */}
+      <div className="bg-gray-50 relative min-h-[500px] lg:min-h-[calc(100vh-110px)] overflow-hidden">
+        {/* Radial glow behind the model */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-[520px] h-[520px] rounded-full bg-[radial-gradient(circle,rgba(198,241,53,0.18)_0%,transparent_65%)]" />
+        </div>
 
-        {/* Floating product image */}
-        <motion.img
-          src="/hero_speaker.png"
-          alt="AURA Smart Speaker"
-          animate={{ y: [0, -20, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-          className="w-[85%] max-w-[460px] relative z-10 drop-shadow-[0_30px_60px_rgba(0,0,0,0.5)]"
-        />
+        {/* 3D Canvas — fills the entire panel */}
+        <div className="absolute inset-0">
+          <Suspense
+            fallback={
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full border-4 border-accent border-t-transparent animate-spin" />
+              </div>
+            }
+          >
+            <Speaker3D />
+          </Suspense>
+        </div>
 
         {/* Best seller badge */}
         <div className="absolute bottom-10 right-10 bg-accent text-black font-display font-bold text-sm px-5 py-3 rounded-xl z-20 leading-snug">
-          🔥 Best Seller<br />
+          🔥 Best Seller
+          <br />
           <span className="text-[0.7rem] font-normal">AURA Smart Speaker</span>
         </div>
       </div>
