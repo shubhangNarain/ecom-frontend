@@ -6,6 +6,7 @@ import Shop from './pages/Shop';
 import NewArrivals from './pages/NewArrivals';
 import Sale from './pages/Sale';
 import About from './pages/About';
+import ProductDetail from './pages/ProductDetail';
 import Footer from './components/Footer';
 import CustomCursor from './components/CustomCursor';
 import './index.css';
@@ -53,6 +54,7 @@ function App() {
         <Route path="/new-arrivals" element={<NewArrivals />} />
         <Route path="/sale" element={<Sale />} />
         <Route path="/about" element={<About />} />
+        <Route path="/product/:id" element={<ProductDetail />} />
       </Routes>
 
       <Footer />
