@@ -7,6 +7,7 @@ import NewArrivals from './pages/NewArrivals';
 import Sale from './pages/Sale';
 import About from './pages/About';
 import Footer from './components/Footer';
+import CustomCursor from './components/CustomCursor';
 import './index.css';
 import Lenis from 'lenis';
 
@@ -43,6 +44,7 @@ function App() {
 
   return (
     <div className="bg-white min-h-screen selection:bg-accent selection:text-black">
+      <CustomCursor />
       <Navbar cartCount={3} onSearch={setSearchQuery} />
       
       <Routes>

@@ -1,136 +1,132 @@
-import { useRef, Suspense } from 'react';
+import React, { useRef, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
+import { Float, ContactShadows, Environment, MeshDistortMaterial } from '@react-three/drei';
+import * as THREE from 'three';
 
-/* ─── Procedural speaker mesh ─────────────────────────────────────────────── */
-function SpeakerModel() {
-  const groupRef = useRef();
-  const ledMat = useRef();
-  const coneRef = useRef();
-  const startedAt = useRef(null);
+const ACCENT = '#c6f135';
+const DARK = '#1a3a2a';
+const METAL = '#2a4a3a';
 
-  useFrame(({ clock }) => {
-    const now = clock.getElapsedTime();
-    if (startedAt.current === null) startedAt.current = now;
-    const t = now - startedAt.current;
+function Model() {
+  const meshRef = useRef();
+  const ringRef = useRef();
+  const ledRef = useRef();
 
-    // ── Scale-in on mount (cubic ease-out over 1.2 s) ──
-    const raw = Math.min(t / 1.2, 1);
-    const eased = 1 - Math.pow(1 - raw, 3);
-
-    // ── Breathing pulse (starts after entry finishes) ──
-    const breathe = raw >= 1 ? Math.sin(t * 1.4) * 0.025 : 0;
-
-    if (groupRef.current) {
-      groupRef.current.scale.setScalar(eased + breathe);
-      // ── Float ──
-      groupRef.current.position.y = raw >= 1 ? Math.sin(t * 0.75) * 0.13 : 0;
-      // ── Slow Y rotation ──
-      groupRef.current.rotation.y += 0.006;
+  useFrame((state) => {
+    const t = state.clock.getElapsedTime();
+    
+    // Slow rotation
+    if (meshRef.current) {
+      meshRef.current.rotation.y = t * 0.2;
     }
 
-    // ── Speaker Cone "thump" effect ──
-    if (coneRef.current && raw >= 1) {
-      const beat = Math.sin(t * 8) * 0.015;
-      coneRef.current.position.y = 0.65 + beat;
-    }
-
-    // ── LED ring glow pulse ──
-    if (ledMat.current) {
-      ledMat.current.emissiveIntensity = 0.8 + Math.sin(t * 2.8) * 0.5;
+    // Pulse the LED ring
+    if (ledRef.current) {
+      ledRef.current.emissiveIntensity = 1.2 + Math.sin(t * 3) * 0.6;
     }
   });
 
-  const ACCENT = '#c6f135';
-  const DARK = '#0a0a0a';
-  const MID = '#1a1a1a';
-  const CHROME = '#ffffff';
-
   return (
-    <group ref={groupRef}>
-      {/* ── Main body casing (Matte Dark) ── */}
-      <mesh castShadow receiveShadow>
-        <cylinderGeometry args={[0.7, 0.76, 1.3, 64, 1]} />
-        <meshStandardMaterial color={MID} roughness={0.8} metalness={0.2} />
+    <group scale={1.2}>
+      {/* ── Main Speaker Body (Sleek Rounded Cylinder) ── */}
+      <mesh ref={meshRef} castShadow receiveShadow>
+        <cylinderGeometry args={[0.5, 0.5, 1.2, 64]} />
+        <meshStandardMaterial 
+          color={DARK} 
+          roughness={0.5} 
+          metalness={0.4}
+        />
+        
+        {/* Grille Detail (Inner mesh) */}
+        <mesh scale={[1.01, 1, 1.01]}>
+          <cylinderGeometry args={[0.5, 0.5, 1.2, 64]} />
+          <meshStandardMaterial 
+            color="#000000" 
+            wireframe 
+            transparent 
+            opacity={0.15} 
+          />
+        </mesh>
       </mesh>
 
-      {/* ── Inner Acoustic Cone (Vibrates) ── */}
-      <mesh ref={coneRef} position={[0, 0.65, 0]} castShadow>
-        <cylinderGeometry args={[0.3, 0.62, 0.2, 64]} />
-        <meshStandardMaterial color={DARK} roughness={0.9} metalness={0.1} />
+      {/* ── Top Interface ── */}
+      <mesh position={[0, 0.6, 0]}>
+        <cylinderGeometry args={[0.48, 0.48, 0.05, 64]} />
+        <meshStandardMaterial color={METAL} roughness={0.3} metalness={0.8} />
       </mesh>
 
-      {/* ── Center Driver Cap ── */}
-      <mesh position={[0, 0.68, 0]}>
-        <cylinderGeometry args={[0.15, 0.15, 0.05, 32]} />
-        <meshStandardMaterial color="#111" roughness={0.4} metalness={0.8} />
-      </mesh>
-
-      {/* ── Chrome details (Top Ring) ── */}
-      <mesh position={[0, 0.76, 0]}>
-        <torusGeometry args={[0.67, 0.03, 16, 64]} />
-        <meshStandardMaterial color={CHROME} roughness={0.1} metalness={1} />
-      </mesh>
-
-      {/* ── Chrome details (Bottom Ring) ── */}
-      <mesh position={[0, -0.66, 0]}>
-        <torusGeometry args={[0.74, 0.02, 16, 64]} />
-        <meshStandardMaterial color={CHROME} roughness={0.15} metalness={0.9} />
-      </mesh>
-
-      {/* ── Top interactive panel ── */}
-      <mesh position={[0, 0.8, 0]} castShadow>
-        <cylinderGeometry args={[0.62, 0.62, 0.05, 64]} />
-        <meshStandardMaterial color={DARK} roughness={0.2} metalness={0.8} />
-      </mesh>
-
-      {/* ── LED accent ring ── */}
-      <mesh position={[0, 0.84, 0]}>
-        <torusGeometry args={[0.5, 0.015, 16, 64]} />
-        <meshStandardMaterial
-          ref={ledMat}
-          color={ACCENT}
-          emissive={ACCENT}
-          emissiveIntensity={1}
+      {/* ── Glowing LED Ring (Top) ── */}
+      <mesh position={[0, 0.63, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.38, 0.012, 16, 64]} />
+        <meshStandardMaterial 
+          ref={ledRef}
+          color={ACCENT} 
+          emissive={ACCENT} 
+          emissiveIntensity={1.5} 
         />
       </mesh>
 
-      {/* ── Media controls on top ── */}
-      <mesh position={[0, 0.83, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <coneGeometry args={[0.06, 0.1, 3]} />
-        <meshStandardMaterial
-          color={ACCENT}
-          emissive={ACCENT}
-          emissiveIntensity={0.5}
-        />
-      </mesh>
+      {/* ── Media Buttons (Top) ── */}
+      <group position={[0, 0.635, 0]}>
+        <mesh position={[0, 0, 0]}>
+          <circleGeometry args={[0.04, 3]} />
+          <meshBasicMaterial color={ACCENT} />
+        </mesh>
+        <mesh position={[0.12, 0, 0]}>
+          <circleGeometry args={[0.015, 16]} />
+          <meshBasicMaterial color="white" />
+        </mesh>
+        <mesh position={[-0.12, 0, 0]}>
+          <circleGeometry args={[0.015, 16]} />
+          <meshBasicMaterial color="white" />
+        </mesh>
+      </group>
 
-      {/* ── Base ── */}
-      <mesh position={[0, -0.7, 0]} castShadow>
-        <cylinderGeometry args={[0.55, 0.65, 0.08, 64]} />
-        <meshStandardMaterial color={DARK} roughness={0.3} metalness={0.7} />
+      {/* ── Bottom Stand ── */}
+      <mesh position={[0, -0.6, 0]}>
+        <cylinderGeometry args={[0.3, 0.45, 0.08, 64]} />
+        <meshStandardMaterial color={METAL} roughness={0.5} metalness={0.5} />
       </mesh>
     </group>
   );
 }
 
-/* ─── Exported Canvas scene ────────────────────────────────────────────────── */
 export default function Speaker3D() {
   return (
     <Canvas
-      camera={{ position: [0, 1.2, 4.5], fov: 35 }}
+      camera={{ position: [0, 0.5, 4], fov: 35 }}
       gl={{ antialias: true, alpha: true }}
       style={{ width: '100%', height: '100%' }}
     >
       <Suspense fallback={null}>
-        <ambientLight intensity={1.5} />
-        <pointLight position={[10, 10, 10]} intensity={2} />
-        <spotLight
-          position={[-10, 10, 10]}
-          angle={0.15}
-          penumbra={1}
-          intensity={2}
+        <ambientLight intensity={2.5} />
+        <spotLight 
+          position={[10, 10, 10]} 
+          angle={0.15} 
+          penumbra={1} 
+          intensity={3} 
+          castShadow 
         />
-        <SpeakerModel />
+        <pointLight position={[-10, -10, -10]} intensity={2.5} color={ACCENT} />
+        
+        <Float 
+          speed={2.5} 
+          rotationIntensity={0.5} 
+          floatIntensity={0.5}
+        >
+          <Model />
+        </Float>
+
+        <ContactShadows 
+          position={[0, -1.1, 0]} 
+          opacity={0.5} 
+          scale={5} 
+          blur={2.5} 
+          far={1.5} 
+          color={ACCENT}
+        />
+        
+        <Environment preset="city" />
       </Suspense>
     </Canvas>
   );

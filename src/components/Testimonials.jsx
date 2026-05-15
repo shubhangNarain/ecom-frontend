@@ -9,14 +9,14 @@ const TESTIMONIALS = [
     initial: 'A',
   },
   {
-    stars: 5,
+    stars: 3,
     text: 'The smartwatch is incredible — battery lasts all week and the health tracking is spot on. Customer support was also amazing when I had a setup question.',
     name: 'Sarah K.',
     role: 'Fitness Coach',
     initial: 'S',
   },
   {
-    stars: 5,
+    stars: 4,
     text: "Best electronics store I've shopped at. The prices are fair, products are genuine, and the 30-day return policy gave me total peace of mind.",
     name: 'James T.',
     role: 'Tech Enthusiast',
@@ -30,7 +30,7 @@ const container = {
 };
 const item = {
   hidden: { opacity: 0, y: 24 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
 
 export default function Testimonials() {
@@ -41,7 +41,10 @@ export default function Testimonials() {
           <p className="text-[0.7rem] font-semibold tracking-[0.2em] uppercase text-gray-400 mb-2">
             What Customers Say
           </p>
-          <h2 className="font-display font-bold tracking-tight text-black" style={{ fontSize: 'clamp(2rem, 4vw, 3.2rem)', lineHeight: 1.1 }}>
+          <h2
+            className="font-display font-bold tracking-tight text-black"
+            style={{ fontSize: 'clamp(2rem, 4vw, 3.2rem)', lineHeight: 1.1 }}
+          >
             Loved by Thousands
           </h2>
         </div>
@@ -72,7 +75,9 @@ export default function Testimonials() {
                   {t.initial}
                 </div>
                 <div>
-                  <div className="font-display font-semibold text-[0.88rem] text-black">{t.name}</div>
+                  <div className="font-display font-semibold text-[0.88rem] text-black">
+                    {t.name}
+                  </div>
                   <div className="text-[0.78rem] text-gray-400">{t.role}</div>
                 </div>
               </div>

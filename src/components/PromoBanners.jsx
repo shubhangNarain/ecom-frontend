@@ -2,8 +2,20 @@ import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 
 const PROMOS = [
-  { id: 1, label: 'Limited Time',  title: 'Up to 40% Off\nAudio Gear',            bg: '#111', imgSrc: '/product_headphones.png' },
-  { id: 2, label: 'New Arrivals',  title: 'Smart Devices\nFor Every Lifestyle',   bg: '#1a1a2e', imgSrc: '/product_smartwatch.png' },
+  {
+    id: 1,
+    label: 'Limited Time',
+    title: 'Up to 40% Off\nAudio Gear',
+    bg: '#111',
+    imgSrc: '/product_headphones.png',
+  },
+  {
+    id: 2,
+    label: 'New Arrivals',
+    title: 'Smart Devices\nFor Every Lifestyle',
+    bg: '#1a1a2e',
+    imgSrc: '/product_smartwatch.png',
+  },
 ];
 
 export default function PromoBanners() {
@@ -34,11 +46,19 @@ export default function PromoBanners() {
                 <div className="text-accent text-[0.72rem] font-semibold tracking-[0.15em] uppercase mb-2">
                   {promo.label}
                 </div>
-                <div className="font-display font-bold leading-tight mb-5" style={{ fontSize: 'clamp(1.5rem, 3vw, 2.2rem)' }}>
-                  {promo.title.split('\n').map((line, i) => <span key={i}>{line}<br /></span>)}
+                <div
+                  className="font-display font-bold leading-tight mb-5"
+                  style={{ fontSize: 'clamp(1.5rem, 3vw, 2.2rem)' }}
+                >
+                  {promo.title.split('\n').map((line, i) => (
+                    <span key={i}>
+                      {line}
+                      <br />
+                    </span>
+                  ))}
                 </div>
                 <a
-                  href="#products"
+                  href="/shop"
                   className="inline-flex items-center gap-2 font-display font-semibold text-sm text-white border-b-2 border-accent pb-0.5 hover:text-accent transition-colors"
                 >
                   Shop Now <ArrowRight size={14} />
