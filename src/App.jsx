@@ -1,20 +1,24 @@
 import { useEffect, useState } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import Marquee from './components/Marquee';
-import FeaturedProducts from './components/FeaturedProducts';
-import PromoBanners from './components/PromoBanners';
-import Features from './components/Features';
-import Testimonials from './components/Testimonials';
-import Newsletter from './components/Newsletter';
+import Home from './pages/Home';
+import Shop from './pages/Shop';
+import NewArrivals from './pages/NewArrivals';
+import Sale from './pages/Sale';
+import About from './pages/About';
 import Footer from './components/Footer';
 import './index.css';
 import Lenis from 'lenis';
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
+  const { pathname } = useLocation();
 
-  // Smooth Scroll here
+  // Smooth Scroll and Scroll-to-top on route change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.2,
@@ -27,26 +31,30 @@ function App() {
       touchMultiplier: 2,
       infinite: false,
     });
+
     function raf(time) {
       lenis.raf(time);
       requestAnimationFrame(raf);
     }
 
     requestAnimationFrame(raf);
+    return () => lenis.destroy();
   }, []);
 
   return (
-    <>
+    <div className="bg-white min-h-screen selection:bg-accent selection:text-black">
       <Navbar cartCount={3} onSearch={setSearchQuery} />
-      <Hero />
-      <Marquee />
-      <FeaturedProducts searchQuery={searchQuery} />
-      <PromoBanners />
-      <Features />
-      <Testimonials />
-      <Newsletter />
+      
+      <Routes>
+        <Route path="/" element={<Home searchQuery={searchQuery} />} />
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/new-arrivals" element={<NewArrivals />} />
+        <Route path="/sale" element={<Sale />} />
+        <Route path="/about" element={<About />} />
+      </Routes>
+
       <Footer />
-    </>
+    </div>
   );
 }
 

@@ -1,7 +1,25 @@
+import { Link } from 'react-router-dom';
+
 export default function Footer() {
-  const SHOP    = ['All Products', 'Audio', 'Wearables', 'Computers', 'Gaming', 'Photography'];
+  const SHOP    = [
+    { name: 'All Products', path: '/shop' },
+    { name: 'New Arrivals', path: '/new-arrivals' },
+    { name: 'Seasonal Sale', path: '/sale' },
+    { name: 'Audio', path: '/shop' },
+    { name: 'Wearables', path: '/shop' },
+    { name: 'Computers', path: '/shop' },
+    { name: 'Gaming', path: '/shop' },
+    { name: 'Photography', path: '/shop' }
+  ];
   const SUPPORT = ['FAQ', 'Shipping Info', 'Returns', 'Order Tracking', 'Warranty', 'Contact Us'];
-  const COMPANY = ['About Us', 'Blog', 'Careers', 'Press', 'Affiliate Program', 'Privacy Policy'];
+  const COMPANY = [
+    { name: 'About Us', path: '/about' },
+    { name: 'Blog', path: '#' },
+    { name: 'Careers', path: '#' },
+    { name: 'Press', path: '#' },
+    { name: 'Affiliate Program', path: '#' },
+    { name: 'Privacy Policy', path: '#' }
+  ];
   const SOCIALS = ['𝕏', 'in', 'f', '📷'];
 
   return (
@@ -33,29 +51,62 @@ export default function Footer() {
           </div>
 
           {/* Links columns */}
-          {[['Shop', SHOP], ['Support', SUPPORT], ['Company', COMPANY]].map(([title, links]) => (
-            <div key={title}>
-              <div className="font-display text-[0.85rem] font-semibold text-white tracking-wide uppercase mb-5">
-                {title}
-              </div>
-              <ul className="flex flex-col gap-3">
-                {links.map((link) => (
-                  <li key={link}>
-                    <a href="#" className="text-[0.88rem] text-white/50 hover:text-accent transition-colors duration-200">
-                      {link}
-                    </a>
-                  </li>
-                ))}
-              </ul>
+          <div>
+            <div className="font-display text-[0.85rem] font-semibold text-white tracking-wide uppercase mb-5">
+              Shop
             </div>
-          ))}
+            <ul className="flex flex-col gap-3">
+              {SHOP.map((link) => (
+                <li key={link.name}>
+                  <Link to={link.path} className="text-[0.88rem] text-white/50 hover:text-accent transition-colors duration-200">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Support column */}
+          <div>
+            <div className="font-display text-[0.85rem] font-semibold text-white tracking-wide uppercase mb-5">
+              Support
+            </div>
+            <ul className="flex flex-col gap-3">
+              {SUPPORT.map((link) => (
+                <li key={link}>
+                  <a href="#" className="text-[0.88rem] text-white/50 hover:text-accent transition-colors duration-200">
+                    {link}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Company column */}
+          <div>
+            <div className="font-display text-[0.85rem] font-semibold text-white tracking-wide uppercase mb-5">
+              Company
+            </div>
+            <ul className="flex flex-col gap-3">
+              {COMPANY.map((link) => (
+                <li key={link.name}>
+                  <Link to={link.path} className="text-[0.88rem] text-white/50 hover:text-accent transition-colors duration-200">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         {/* Bottom bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 text-[0.8rem] text-white/40">
           <span>© 2025 Jauter. All rights reserved.</span>
           <div className="flex gap-6">
-            {['Privacy Policy', 'Terms of Service', 'Cookie Settings'].map((l) => (
+            {COMPANY.filter(c => c.name === 'Privacy Policy').map((l) => (
+              <Link key={l.name} to={l.path} className="hover:text-accent transition-colors">{l.name}</Link>
+            ))}
+            {['Terms of Service', 'Cookie Settings'].map((l) => (
               <a key={l} href="#" className="hover:text-accent transition-colors">{l}</a>
             ))}
           </div>

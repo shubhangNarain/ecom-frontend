@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, Search, Heart, Menu, X } from 'lucide-react';
+import { Link, NavLink } from 'react-router-dom';
 
 export default function Navbar({ cartCount = 3, onSearch }) {
   const [menuOpen, setMenuOpen]     = useState(false);
@@ -29,7 +30,13 @@ export default function Navbar({ cartCount = 3, onSearch }) {
     onSearch?.('');
   };
 
-  const NAV_LINKS = ['Home', 'Shop', 'New Arrivals', 'Sale', 'About'];
+  const NAV_LINKS = [
+    { name: 'Home', path: '/' },
+    { name: 'Shop', path: '/shop' },
+    { name: 'New Arrivals', path: '/new-arrivals' },
+    { name: 'Sale', path: '/sale' },
+    { name: 'About', path: '/about' }
+  ];
 
   return (
     <>
@@ -43,21 +50,24 @@ export default function Navbar({ cartCount = 3, onSearch }) {
         <div className="max-w-7xl mx-auto px-8 flex items-center justify-between h-[72px] gap-8">
 
           {/* Logo */}
-          <a href="#" className="font-display text-[1.6rem] font-bold tracking-tight text-black shrink-0">
+          <Link to="/" className="font-display text-[1.6rem] font-bold tracking-tight text-black shrink-0">
             Jaut<span className="text-accent bg-black px-1 rounded">er</span>
-          </a>
+          </Link>
 
           {/* Nav links */}
           <ul className="hidden md:flex items-center gap-10">
             {NAV_LINKS.map((item) => (
-              <li key={item}>
-                <a
-                  href="#"
-                  className="relative font-display text-[0.88rem] font-medium text-gray-500 hover:text-black transition-colors duration-200
-                             after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:h-0.5 after:bg-accent after:w-0 hover:after:w-full after:transition-all after:duration-300"
+              <li key={item.name}>
+                <NavLink
+                  to={item.path}
+                  className={({ isActive }) => `
+                    relative font-display text-[0.88rem] font-medium transition-colors duration-200
+                    after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:h-0.5 after:bg-accent after:transition-all after:duration-300
+                    ${isActive ? 'text-black after:w-full' : 'text-gray-500 hover:text-black after:w-0 hover:after:w-full'}
+                  `}
                 >
-                  {item}
-                </a>
+                  {item.name}
+                </NavLink>
               </li>
             ))}
           </ul>
@@ -173,10 +183,14 @@ export default function Navbar({ cartCount = 3, onSearch }) {
                 </div>
                 <ul className="flex flex-col gap-4">
                   {NAV_LINKS.map((item) => (
-                    <li key={item}>
-                      <a href="#" className="font-display font-semibold text-base text-black hover:text-accent transition-colors">
-                        {item}
-                      </a>
+                    <li key={item.name}>
+                      <Link 
+                        to={item.path} 
+                        onClick={() => setMenuOpen(false)}
+                        className="font-display font-semibold text-base text-black hover:text-accent transition-colors"
+                      >
+                        {item.name}
+                      </Link>
                     </li>
                   ))}
                 </ul>
