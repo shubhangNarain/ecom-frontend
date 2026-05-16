@@ -4,8 +4,10 @@ import { motion } from 'framer-motion';
 import { ShoppingCart, Heart, ArrowLeft, Shield, Zap, Truck, RotateCcw } from 'lucide-react';
 import { PRODUCTS } from '../data/products';
 import ProductCard from '../components/ProductCard';
+import { useCart } from '../context/CartContext';
 
 const ProductDetail = () => {
+  const { addItem } = useCart();
   const { id } = useParams();
   const product = PRODUCTS.find((p) => p.id === parseInt(id));
 
@@ -84,7 +86,10 @@ const ProductDetail = () => {
 
             {/* Actions */}
             <div className="flex gap-4 mb-12">
-              <button className="flex-1 bg-black text-white py-5 rounded-2xl font-display font-bold text-sm uppercase tracking-widest hover:bg-accent hover:text-black transition-all active:scale-[0.98] flex items-center justify-center gap-3">
+              <button 
+                onClick={() => addItem(product)}
+                className="flex-1 bg-black text-white py-5 rounded-2xl font-display font-bold text-sm uppercase tracking-widest hover:bg-accent hover:text-black transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+              >
                 <ShoppingCart size={18} />
                 Add to Cart
               </button>

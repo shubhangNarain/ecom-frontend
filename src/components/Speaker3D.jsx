@@ -91,12 +91,13 @@ function Model() {
   );
 }
 
-export default function Speaker3D() {
+export default function Speaker3D({ onLoaded }) {
   return (
     <Canvas
       camera={{ position: [0, 0.5, 4], fov: 35 }}
       gl={{ antialias: true, alpha: true }}
       style={{ width: '100%', height: '100%' }}
+      onCreated={onLoaded}
     >
       <Suspense fallback={null}>
         <ambientLight intensity={2.5} />

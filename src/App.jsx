@@ -1,14 +1,19 @@
-import { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
-import Shop from './pages/Shop';
-import NewArrivals from './pages/NewArrivals';
-import Sale from './pages/Sale';
-import About from './pages/About';
-import ProductDetail from './pages/ProductDetail';
+
+// Lazy load pages for better FCP
+const Shop = lazy(() => import('./pages/Shop'));
+const NewArrivals = lazy(() => import('./pages/NewArrivals'));
+const Sale = lazy(() => import('./pages/Sale'));
+const About = lazy(() => import('./pages/About'));
+const ProductDetail = lazy(() => import('./pages/ProductDetail'));
+
 import Footer from './components/Footer';
 import CustomCursor from './components/CustomCursor';
+import { CartProvider } from './context/CartContext';
+import CartDrawer from './components/CartDrawer';
 import './index.css';
 import Lenis from 'lenis';
 
@@ -44,21 +49,26 @@ function App() {
   }, []);
 
   return (
-    <div className="bg-white min-h-screen selection:bg-accent selection:text-black">
-      <CustomCursor />
-      <Navbar cartCount={3} onSearch={setSearchQuery} />
-      
-      <Routes>
-        <Route path="/" element={<Home searchQuery={searchQuery} />} />
-        <Route path="/shop" element={<Shop />} />
-        <Route path="/new-arrivals" element={<NewArrivals />} />
-        <Route path="/sale" element={<Sale />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/product/:id" element={<ProductDetail />} />
-      </Routes>
+    <CartProvider>
+      <div className="bg-white min-h-screen selection:bg-accent selection:text-black">
+        <CustomCursor />
+        <CartDrawer />
+        <Navbar onSearch={setSearchQuery} />
+        
+        <Suspense fallback={<div className="min-h-screen bg-white" />}>
+          <Routes>
+            <Route path="/" element={<Home searchQuery={searchQuery} />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/new-arrivals" element={<NewArrivals />} />
+            <Route path="/sale" element={<Sale />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
+          </Routes>
+        </Suspense>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </CartProvider>
   );
 }
 

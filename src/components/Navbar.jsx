@@ -3,7 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, Search, Heart, Menu, X } from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
 
-export default function Navbar({ cartCount = 3, onSearch }) {
+import { useCart } from '../context/CartContext';
+
+export default function Navbar({ onSearch }) {
+  const { cartCount, setIsCartOpen } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -149,6 +152,7 @@ export default function Navbar({ cartCount = 3, onSearch }) {
 
             {/* Cart */}
             <button
+              onClick={() => setIsCartOpen(true)}
               className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-black"
               aria-label="Cart"
             >

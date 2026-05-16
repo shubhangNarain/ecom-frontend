@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, Heart, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import QuickViewModal from './QuickViewModal';
+import { useCart } from '../context/CartContext';
 
 export default function ProductCard({ product }) {
+  const { addItem } = useCart();
   const [wished, setWished] = useState(false);
   const [showQuickView, setShowQuickView] = useState(false);
 
@@ -81,6 +83,11 @@ export default function ProductCard({ product }) {
               <motion.button
                 whileHover={{ backgroundColor: '#c6f135', color: '#000' }}
                 transition={{ duration: 0.2 }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  addItem(product);
+                }}
                 className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white"
                 aria-label="Add to cart"
               >

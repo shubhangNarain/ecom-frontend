@@ -9,8 +9,10 @@ import {
 import { ShoppingCart, Eye, Star, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 
 export default function QuickViewModal({ product, open, setOpen }) {
+  const { addItem } = useCart();
   if (!product) return null;
 
   return (
@@ -68,7 +70,10 @@ export default function QuickViewModal({ product, open, setOpen }) {
             </div>
 
             <div className="flex flex-col gap-3">
-              <button className="w-full bg-black text-white py-4 rounded-xl font-display font-bold text-xs uppercase tracking-widest hover:bg-accent hover:text-black transition-all flex items-center justify-center gap-2 group">
+              <button 
+                onClick={() => addItem(product)}
+                className="w-full bg-black text-white py-4 rounded-xl font-display font-bold text-xs uppercase tracking-widest hover:bg-accent hover:text-black transition-all flex items-center justify-center gap-2 group"
+              >
                 <ShoppingCart size={16} className="group-hover:scale-110 transition-transform" />
                 Add to Cart
               </button>

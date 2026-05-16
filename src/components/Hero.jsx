@@ -1,8 +1,9 @@
-import { Suspense, lazy } from 'react';
-import { motion } from 'framer-motion';
+import React, { Suspense, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Zap } from 'lucide-react';
+import { Canvas } from '@react-three/fiber';
 
-const Speaker3D = lazy(() => import('./Speaker3D'));
+const Speaker3D = React.lazy(() => import('./Speaker3D'));
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -10,6 +11,8 @@ const fadeUp = {
 };
 
 export default function Hero() {
+  const [modelLoaded, setModelLoaded] = useState(false);
+
   return (
     <section className="grid grid-cols-1 lg:grid-cols-2 min-h-[calc(100vh-110px)] overflow-hidden">
       {/* ── Left: content ── */}
@@ -106,16 +109,30 @@ export default function Hero() {
           <div className="w-[520px] h-[520px] rounded-full bg-[radial-gradient(circle,rgba(198,241,53,0.18)_0%,transparent_65%)]" />
         </div>
 
-        {/* 3D Canvas — fills the entire panel */}
+        {/* Static Placeholder for LCP */}
+        <AnimatePresence>
+          {!modelLoaded && (
+            <motion.div
+              key="placeholder"
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8 }}
+              className="absolute inset-0 z-10 flex items-center justify-center"
+            >
+              <img 
+                src="/speaker_placeholder.png" 
+                alt="Aura Speaker" 
+                className="w-auto h-[60%] object-contain drop-shadow-2xl"
+                fetchPriority="high"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 3D Canvas */}
         <div className="absolute inset-0">
-          <Suspense
-            fallback={
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="w-12 h-12 rounded-full border-4 border-accent border-t-transparent animate-spin" />
-              </div>
-            }
-          >
-            <Speaker3D />
+          <Suspense fallback={null}>
+            <Speaker3D onLoaded={() => setModelLoaded(true)} />
           </Suspense>
         </div>
 
