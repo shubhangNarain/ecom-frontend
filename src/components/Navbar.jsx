@@ -1,16 +1,28 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Search, Heart, Menu, X } from 'lucide-react';
-import { Link, NavLink } from 'react-router-dom';
+import { ShoppingCart, Search, Heart, Menu, X, User } from 'lucide-react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function Navbar({ onSearch }) {
-  const { cartCount, setIsCartOpen } = useCart();
+  const { cartCount, setIsCartOpen, clearCart } = useCart();
+  const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const inputRef = useRef(null);
+  const navigate = useNavigate();
+
+  const handleSearch = (e) => {
+    if (e.key === 'Enter' && query.trim()) {
+      navigate(`/search?q=${encodeURIComponent(query.trim())}`);
+      setSearchOpen(false);
+      setMenuOpen(false);
+    }
+  };
 
   useEffect(() => {
     if (searchOpen) inputRef.current?.focus();
@@ -116,7 +128,10 @@ export default function Navbar({ onSearch }) {
                       placeholder="Search products…"
                       value={query}
                       onChange={handleChange}
-                      onKeyDown={(e) => e.key === 'Escape' && handleClose()}
+                      onKeyDown={(e) => {
+                        handleSearch(e);
+                        if (e.key === 'Escape') handleClose();
+                      }}
                       aria-label="Search products"
                     />
                   )}
@@ -149,6 +164,93 @@ export default function Navbar({ onSearch }) {
             >
               <Heart size={18} />
             </button>
+
+            {/* User Avatar / Login */}
+            {!user ? (
+              <div className="relative">
+                <button onClick={() => navigate('/login')}>Login</button>
+              </div>
+            ) : (
+              <div className="relative">
+                {user ? (
+                  <div
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-accent text-black font-display font-bold cursor-pointer hover:shadow-lg transition-all"
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  >
+                    {user.name ? (
+                      user.name.charAt(0).toUpperCase()
+                    ) : (
+                      <User size={18} />
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-black"
+                    aria-label="Login"
+                  >
+                    <User size={18} />
+                  </button>
+                )}
+
+                <AnimatePresence>
+                  {userMenuOpen && user && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute right-0 top-12 w-56 bg-white shadow-xl rounded-2xl border border-gray-100 py-2 overflow-hidden z-50"
+                    >
+                      <div className="px-4 py-3 border-b border-gray-50 mb-1">
+                        <p className="font-display font-bold text-sm text-black truncate">
+                          {user.name}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {user.email}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col py-1">
+                        <Link
+                          to="/profile"
+                          className="px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-black font-medium transition-colors flex items-center gap-3"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          <User size={16} /> My Profile
+                        </Link>
+                        <Link
+                          to="/orders"
+                          className="px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-black font-medium transition-colors flex items-center gap-3"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          <ShoppingCart size={16} /> Orders
+                        </Link>
+                        <Link
+                          to="/wishlist"
+                          className="px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-black font-medium transition-colors flex items-center gap-3"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          <Heart size={16} /> Wishlist
+                        </Link>
+                      </div>
+
+                      <div className="border-t border-gray-50 mt-1 pt-1">
+                        <button
+                          onClick={() => {
+                            logout();
+                            clearCart();
+                            setUserMenuOpen(false);
+                          }}
+                          className="w-full text-left px-4 py-2.5 text-sm text-red-500 font-bold hover:bg-red-50 transition-colors flex items-center gap-3"
+                        >
+                          <X size={16} /> Sign Out
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
 
             {/* Cart */}
             <button
@@ -194,6 +296,7 @@ export default function Navbar({ onSearch }) {
                     placeholder="Search products…"
                     value={query}
                     onChange={handleChange}
+                    onKeyDown={handleSearch}
                     className="flex-1 bg-transparent border-none outline-none font-display text-sm text-black placeholder:text-gray-400"
                   />
                 </div>

@@ -2,23 +2,33 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShoppingCart, Heart, ArrowLeft, Shield, Zap, Truck, RotateCcw } from 'lucide-react';
-import { PRODUCTS } from '../data/products';
+import { useProducts } from '../context/ProductContext';
 import ProductCard from '../components/ProductCard';
 import { useCart } from '../context/CartContext';
 
 const ProductDetail = () => {
   const { addItem } = useCart();
   const { id } = useParams();
-  const product = PRODUCTS.find((p) => p.id === parseInt(id));
+  const { products, loading, error } = useProducts();
+  const product = products.find((p) => p.id === parseInt(id));
 
   // Find related products (same category, excluding current)
-  const related = PRODUCTS.filter((p) => p.category === product?.category && p.id !== product?.id).slice(0, 4);
+  const related = products.filter((p) => p.category === product?.category && p.id !== product?.id).slice(0, 4);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [id]);
 
-  if (!product) {
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <div className="w-12 h-12 border-4 border-gray-200 border-t-accent rounded-full animate-spin mb-4"></div>
+        <p className="font-display font-bold text-gray-500">Loading product...</p>
+      </div>
+    );
+  }
+
+  if (error || !product) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-8 text-center">
         <h2 className="font-display font-bold text-3xl mb-4">Product Not Found</h2>
@@ -114,12 +124,16 @@ const ProductDetail = () => {
             <div className="bg-gray-50 rounded-2xl p-8 mb-12">
               <h3 className="font-display font-bold text-black text-xs uppercase tracking-widest mb-6">Technical Specifications</h3>
               <div className="space-y-4">
-                {Object.entries(product.specs || {}).map(([key, val]) => (
-                  <div key={key} className="flex justify-between items-center py-3 border-b border-gray-200 last:border-0">
-                    <span className="text-sm text-gray-500">{key}</span>
-                    <span className="text-sm font-bold text-black">{val}</span>
-                  </div>
-                ))}
+                {product.specs && Object.keys(product.specs).length > 0 ? (
+                  Object.entries(product.specs).map(([key, val]) => (
+                    <div key={key} className="flex justify-between items-center py-3 border-b border-gray-200 last:border-0">
+                      <span className="text-sm text-gray-500">{key}</span>
+                      <span className="text-sm font-bold text-black">{val}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500 italic">No specifications available.</p>
+                )}
               </div>
             </div>
 

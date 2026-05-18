@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
 
 const CartContext = createContext();
 
@@ -16,10 +17,52 @@ export const CartProvider = ({ children }) => {
     return savedCart ? JSON.parse(savedCart) : [];
   });
   const [isCartOpen, setIsCartOpen] = useState(false);
+  
+  const { user } = useAuth();
+  const [hasFetchedCart, setHasFetchedCart] = useState(false);
 
+  // Fetch cart on login
+  useEffect(() => {
+    if (user && !hasFetchedCart) {
+      const token = localStorage.getItem('token');
+      fetch('https://ecom-backend-dp5m.onrender.com/api/v1/users/cart', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.cart && data.cart.length > 0) {
+          // If local cart is empty, use backend cart. 
+          // If local cart has items, we will let the next useEffect sync the local cart up to the backend.
+          if (cart.length === 0) {
+            setCart(data.cart);
+          }
+        }
+        setHasFetchedCart(true);
+      })
+      .catch(err => console.error('Error fetching cart:', err));
+    }
+  }, [user, hasFetchedCart, cart.length]);
+
+  // Sync cart local & backend
   useEffect(() => {
     localStorage.setItem('jauter_cart', JSON.stringify(cart));
-  }, [cart]);
+    
+    if (user && hasFetchedCart) {
+      const token = localStorage.getItem('token');
+      const timer = setTimeout(() => {
+        fetch('https://ecom-backend-dp5m.onrender.com/api/v1/users/cart', {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}` 
+          },
+          body: JSON.stringify({ cart })
+        }).catch(err => console.error('Error updating backend cart:', err));
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [cart, user, hasFetchedCart]);
 
   const addItem = (product) => {
     setCart((prevCart) => {
@@ -33,7 +76,6 @@ export const CartProvider = ({ children }) => {
       }
       return [...prevCart, { ...product, quantity: 1 }];
     });
-    // Open cart automatically when adding item
     setIsCartOpen(true);
   };
 
@@ -55,6 +97,7 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = () => {
     setCart([]);
+    setHasFetchedCart(false); // Reset so it can be fetched again on next login
   };
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);

@@ -2,10 +2,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
-import { PRODUCTS } from '../data/products';
+import { useProducts } from '../context/ProductContext';
 
 const NewArrivals = () => {
-  const newProducts = PRODUCTS.filter((p) => p.tag === 'New');
+  const { products, loading, error } = useProducts();
+  const newProducts = products.filter((p) => p.tag === 'New');
 
   return (
     <div className="min-h-screen bg-white">
@@ -63,6 +64,22 @@ const NewArrivals = () => {
           <span className="text-sm text-gray-400">{newProducts.length} items found</span>
         </div>
 
+        {loading && (
+          <div className="py-32 flex flex-col items-center justify-center">
+            <div className="w-12 h-12 border-4 border-gray-200 border-t-accent rounded-full animate-spin mb-4"></div>
+            <p className="font-display font-bold text-gray-500">Loading new arrivals...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="py-32 flex flex-col items-center justify-center text-center">
+            <div className="text-5xl mb-4">⚠️</div>
+            <p className="font-display font-bold text-xl text-red-500 mb-2">Failed to load products</p>
+            <p className="text-gray-500">Please try refreshing the page.</p>
+          </div>
+        )}
+
+        {!loading && !error && (
         <AnimatePresence mode="popLayout">
           {newProducts.length > 0 ? (
             <motion.div 
@@ -90,6 +107,7 @@ const NewArrivals = () => {
             </div>
           )}
         </AnimatePresence>
+        )}
       </section>
 
       {/* Catchy footer-like section for this page */}

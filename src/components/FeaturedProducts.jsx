@@ -2,13 +2,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ProductCard from './ProductCard';
-import { PRODUCTS } from '../data/products';
+import { useProducts } from '../context/ProductContext';
 
 export default function FeaturedProducts({ searchQuery = '' }) {
+  const { products, loading, error } = useProducts();
   const q = searchQuery.trim().toLowerCase();
   const filtered = q
-    ? PRODUCTS.filter((p) => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))
-    : PRODUCTS;
+    ? products.filter((p) => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))
+    : products;
 
   return (
     <section className="py-24" id="products">
@@ -35,8 +36,24 @@ export default function FeaturedProducts({ searchQuery = '' }) {
           )}
         </div>
 
+        {/* Loading and Error States */}
+        {loading && (
+          <div className="py-24 flex flex-col items-center justify-center">
+            <div className="w-10 h-10 border-4 border-gray-200 border-t-accent rounded-full animate-spin mb-4"></div>
+            <p className="font-display font-bold text-gray-500">Loading products...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="py-24 flex flex-col items-center justify-center text-center">
+            <div className="text-4xl mb-4">⚠️</div>
+            <p className="font-display font-bold text-lg text-red-500 mb-1">Failed to load products</p>
+          </div>
+        )}
+
         {/* Grid */}
-        {filtered.length > 0 ? (
+        {!loading && !error && (
+        filtered.length > 0 ? (
           <motion.div
             layout
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
@@ -69,7 +86,7 @@ export default function FeaturedProducts({ searchQuery = '' }) {
               We couldn&rsquo;t find anything matching &ldquo;{searchQuery}&rdquo;.<br />Try a different keyword.
             </p>
           </motion.div>
-        )}
+        ))}
       </div>
     </section>
   );
