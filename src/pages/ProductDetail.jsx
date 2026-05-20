@@ -5,12 +5,15 @@ import { ShoppingCart, Heart, ArrowLeft, Shield, Zap, Truck, RotateCcw } from 'l
 import { useProducts } from '../context/ProductContext';
 import ProductCard from '../components/ProductCard';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 
 const ProductDetail = () => {
   const { addItem } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const { id } = useParams();
   const { products, loading, error } = useProducts();
   const product = products.find((p) => p.id === parseInt(id));
+  const wished = product ? isInWishlist(product.id) : false;
 
   // Find related products (same category, excluding current)
   const related = products.filter((p) => p.category === product?.category && p.id !== product?.id).slice(0, 4);
@@ -103,8 +106,11 @@ const ProductDetail = () => {
                 <ShoppingCart size={18} />
                 Add to Cart
               </button>
-              <button className="w-16 h-16 border-2 border-gray-100 rounded-2xl flex items-center justify-center hover:border-black hover:bg-black hover:text-white transition-all">
-                <Heart size={20} />
+              <button 
+                onClick={() => toggleWishlist(product)}
+                className={`w-16 h-16 border-2 rounded-2xl flex items-center justify-center transition-all ${wished ? 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100 hover:border-red-300' : 'border-gray-100 text-gray-400 hover:border-black hover:bg-black hover:text-white'}`}
+              >
+                <Heart size={20} fill={wished ? 'currentColor' : 'none'} />
               </button>
             </div>
 

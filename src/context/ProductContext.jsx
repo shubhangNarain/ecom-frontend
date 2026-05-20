@@ -1,5 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import useFetch from '../hooks/useFetch';
+import { API_BASE_URL } from '../lib/config';
 
 const ProductContext = createContext();
 
@@ -12,7 +13,7 @@ export const useProducts = () => {
 };
 
 export const ProductProvider = ({ children }) => {
-  const { data: products, loading, error } = useFetch('https://ecom-backend-dp5m.onrender.com/api/v1/products');
+  const { data: products, loading, error } = useFetch(`${API_BASE_URL}/api/v1/products`);
 
   return (
     <ProductContext.Provider value={{ products, loading, error }}>

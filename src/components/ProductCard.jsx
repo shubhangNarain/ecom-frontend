@@ -4,10 +4,12 @@ import { ShoppingCart, Heart, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import QuickViewModal from './QuickViewModal';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 
 export default function ProductCard({ product }) {
   const { addItem } = useCart();
-  const [wished, setWished] = useState(false);
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const wished = isInWishlist(product.id);
   const [showQuickView, setShowQuickView] = useState(false);
 
   return (
@@ -74,7 +76,8 @@ export default function ProductCard({ product }) {
               <button
                 onClick={(e) => {
                   e.preventDefault();
-                  setWished(!wished);
+                  e.stopPropagation();
+                  toggleWishlist(product);
                 }}
                 className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${wished ? 'bg-red-50 text-red-500' : 'bg-gray-100 text-gray-400 hover:text-black'}`}
               >

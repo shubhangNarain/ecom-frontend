@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { API_BASE_URL } from '../lib/config';
 
 const CartContext = createContext();
 
@@ -25,7 +26,7 @@ export const CartProvider = ({ children }) => {
   useEffect(() => {
     if (user && !hasFetchedCart) {
       const token = localStorage.getItem('token');
-      fetch('https://ecom-backend-dp5m.onrender.com/api/v1/users/cart', {
+      fetch(`${API_BASE_URL}/api/v1/users/cart`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then(res => res.json())
@@ -50,7 +51,7 @@ export const CartProvider = ({ children }) => {
     if (user && hasFetchedCart) {
       const token = localStorage.getItem('token');
       const timer = setTimeout(() => {
-        fetch('https://ecom-backend-dp5m.onrender.com/api/v1/users/cart', {
+        fetch(`${API_BASE_URL}/api/v1/users/cart`, {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json',
@@ -97,8 +98,14 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = () => {
     setCart([]);
-    setHasFetchedCart(false); // Reset so it can be fetched again on next login
   };
+
+  // Reset fetch tracker when user logs out
+  useEffect(() => {
+    if (!user) {
+      setHasFetchedCart(false);
+    }
+  }, [user]);
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
 

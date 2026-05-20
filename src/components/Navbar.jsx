@@ -5,10 +5,12 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useWishlist } from '../context/WishlistContext';
 
 export default function Navbar({ onSearch }) {
   const { cartCount, setIsCartOpen, clearCart } = useCart();
   const { user, logout } = useAuth();
+  const { wishlist } = useWishlist();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -158,12 +160,18 @@ export default function Navbar({ onSearch }) {
             </div>
 
             {/* Wishlist */}
-            <button
-              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-black"
+            <Link
+              to="/wishlist"
+              className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-black"
               aria-label="Wishlist"
             >
               <Heart size={18} />
-            </button>
+              {wishlist.length > 0 && (
+                <span className="absolute top-0.5 right-0.5 bg-red-500 text-white text-[0.6rem] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  {wishlist.length}
+                </span>
+              )}
+            </Link>
 
             {/* User Avatar / Login */}
             {!user ? (

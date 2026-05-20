@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { API_BASE_URL } from '../lib/config';
 
 const AuthContext = createContext();
 
@@ -24,7 +25,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await fetch(
-        'https://ecom-backend-dp5m.onrender.com/api/v1/users/login',
+        `${API_BASE_URL}/api/v1/users/login`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -67,7 +68,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await fetch(
-        'https://ecom-backend-dp5m.onrender.com/api/v1/users/register',
+        `${API_BASE_URL}/api/v1/users/register`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
