@@ -22,7 +22,7 @@ export default function Orders() {
     const fetchOrders = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${API_BASE_URL}/api/v1/orders`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/orders/my`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -33,7 +33,31 @@ export default function Orders() {
           throw new Error(data.message || 'Failed to fetch orders');
         }
 
-        setOrders(data);
+        const orderList = data.orders || [];
+        const normalizedOrders = orderList.map((order) => ({
+          _id: order._id,
+          createdAt: order.createdAt,
+          amount: order.grandTotal,
+          status: order.status,
+          paymentId: order.payment?.razorpayPaymentId || 'N/A',
+          shippingAddress: {
+            name: order.shippingAddress.fullName,
+            address: order.shippingAddress.street,
+            city: order.shippingAddress.city,
+            zip: order.shippingAddress.postalCode,
+            country: order.shippingAddress.country,
+          },
+          items: order.items.map((item) => ({
+            id: item.product,
+            name: item.title,
+            image: item.thumbnail,
+            price: String(item.price),
+            quantity: item.quantity,
+            category: item.category || 'Audio',
+          })),
+        }));
+
+        setOrders(normalizedOrders);
       } catch (err) {
         setError(err.message);
       } finally {

@@ -81,10 +81,26 @@ export default function Checkout() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          items: cart,
-          amount: parseFloat(total.toFixed(2)),
-          shippingAddress: formData,
-          paymentId: `MOCK_PAY_${Math.random().toString(36).substring(2, 9).toUpperCase()}`,
+          items: cart.map((item) => ({
+            product: item._id || String(item.id),
+            quantity: item.quantity,
+          })),
+          shippingAddress: {
+            fullName: formData.name,
+            phone: formData.phone,
+            street: formData.address,
+            city: formData.city,
+            postalCode: formData.zip,
+            country: formData.country,
+            state: "",
+          },
+          payment: {
+            method: 'cod',
+            status: 'pending',
+            razorpayPaymentId: `MOCK_PAY_${Math.random().toString(36).substring(2, 9).toUpperCase()}`,
+          },
+          shippingCharge: shipping,
+          discount: discountAmount,
         }),
       });
 
@@ -96,7 +112,33 @@ export default function Checkout() {
 
       // Order created successfully
       clearCart();
-      navigate('/order-confirmation', { state: { order: data } });
+      // Normalize backend response for OrderConfirmation page
+      const normalizedOrder = {
+        _id: data._id,
+        createdAt: data.createdAt,
+        amount: data.grandTotal,
+        shippingAddress: {
+          name: data.shippingAddress.fullName,
+          email: formData.email,
+          phone: data.shippingAddress.phone,
+          address: data.shippingAddress.street,
+          city: data.shippingAddress.city,
+          zip: data.shippingAddress.postalCode,
+          country: data.shippingAddress.country,
+        },
+        items: data.items.map((item) => {
+          const cartItem = cart.find(c => (c._id === item.product || String(c.id) === String(item.product))) || {};
+          return {
+            id: cartItem.id || item.product,
+            name: item.title,
+            image: item.thumbnail,
+            price: String(item.price),
+            quantity: item.quantity,
+          };
+        }),
+      };
+
+      navigate('/order-confirmation', { state: { order: normalizedOrder } });
     } catch (err) {
       setError(err.message);
     } finally {

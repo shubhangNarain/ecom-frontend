@@ -17,6 +17,7 @@ const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'));
 const Orders = lazy(() => import('./pages/Orders'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Wishlist = lazy(() => import('./pages/Wishlist'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 import Footer from './components/Footer';
 import CustomCursor from './components/CustomCursor';
 import { CartProvider } from './context/CartContext';
@@ -84,6 +85,7 @@ function App() {
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/wishlist" element={<Wishlist />} />
+                <Route path="/admin" element={<AdminDashboard />} />
               </Routes>
             </Suspense>
 

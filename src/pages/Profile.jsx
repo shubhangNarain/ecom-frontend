@@ -25,14 +25,14 @@ export default function Profile() {
     const fetchOrderCount = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${API_BASE_URL}/api/v1/orders`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/orders/my`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
         if (response.ok) {
           const data = await response.json();
-          setOrderCount(data.length);
+          setOrderCount(data.total || 0);
         }
       } catch (err) {
         console.error('Error fetching order count:', err);

@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/v1/users/login`,
+        `${API_BASE_URL}/api/v1/auth/login`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -40,21 +40,15 @@ export const AuthProvider = ({ children }) => {
       }
 
       // Save to state and local storage
-      setUser({
-        id: data.user.id,
-        name: data.user.name,
-        email: data.user.email,
-        role: data.user.role,
-      });
-      localStorage.setItem(
-        'user',
-        JSON.stringify({
-          id: data.user.id,
-          name: data.user.name,
-          email: data.user.email,
-          role: data.user.role,
-        })
-      );
+      const userData = {
+        id: data._id,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        profileImage: data.profileImage,
+      };
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('token', data.token);
 
       return true;
@@ -68,7 +62,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/v1/users/register`,
+        `${API_BASE_URL}/api/v1/auth/register`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -83,21 +77,15 @@ export const AuthProvider = ({ children }) => {
       }
 
       // Save to state and local storage
-      setUser({
-        id: data.user.id,
-        name: data.user.name,
-        email: data.user.email,
-        role: data.user.role,
-      });
-      localStorage.setItem(
-        'user',
-        JSON.stringify({
-          id: data.user.id,
-          name: data.user.name,
-          email: data.user.email,
-          role: data.user.role,
-        })
-      );
+      const userData = {
+        id: data._id,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        profileImage: data.profileImage,
+      };
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('token', data.token);
 
       return true;

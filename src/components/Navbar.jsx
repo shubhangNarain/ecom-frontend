@@ -219,6 +219,15 @@ export default function Navbar({ onSearch }) {
                       </div>
 
                       <div className="flex flex-col py-1">
+                        {user.role === 'admin' && (
+                          <Link
+                            to="/admin"
+                            className="px-4 py-2.5 text-sm text-black bg-accent/20 hover:bg-accent hover:text-black font-bold transition-colors flex items-center gap-3 border-b border-gray-100"
+                            onClick={() => setUserMenuOpen(false)}
+                          >
+                            🛡️ Admin Dashboard
+                          </Link>
+                        )}
                         <Link
                           to="/profile"
                           className="px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-black font-medium transition-colors flex items-center gap-3"
