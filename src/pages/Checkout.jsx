@@ -10,14 +10,16 @@ export default function Checkout() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const [isOrderPlaced, setIsOrderPlaced] = useState(false);
+
   // Redirect if not logged in or cart is empty
   useEffect(() => {
     if (!user) {
       navigate('/login?redirect=checkout');
-    } else if (cart.length === 0) {
+    } else if (cart.length === 0 && !isOrderPlaced) {
       navigate('/');
     }
-  }, [user, cart, navigate]);
+  }, [user, cart, navigate, isOrderPlaced]);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -111,6 +113,7 @@ export default function Checkout() {
       }
 
       // Order created successfully
+      setIsOrderPlaced(true);
       clearCart();
       // Normalize backend response for OrderConfirmation page
       const normalizedOrder = {
@@ -138,6 +141,7 @@ export default function Checkout() {
         }),
       };
 
+      localStorage.setItem('latest_order', JSON.stringify(normalizedOrder));
       navigate('/order-confirmation', { state: { order: normalizedOrder } });
     } catch (err) {
       setError(err.message);
@@ -146,7 +150,7 @@ export default function Checkout() {
     }
   };
 
-  if (!user || cart.length === 0) {
+  if (!user || (cart.length === 0 && !isOrderPlaced)) {
     return null;
   }
 
