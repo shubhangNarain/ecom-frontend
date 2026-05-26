@@ -46,6 +46,7 @@ export const AuthProvider = ({ children }) => {
         email: data.email,
         role: data.role,
         profileImage: data.profileImage,
+        shippingAddress: data.shippingAddress || {},
       };
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
@@ -83,6 +84,7 @@ export const AuthProvider = ({ children }) => {
         email: data.email,
         role: data.role,
         profileImage: data.profileImage,
+        shippingAddress: data.shippingAddress || {},
       };
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
@@ -95,6 +97,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUser = (newUserData) => {
+    setUser((prevUser) => {
+      const updated = { ...prevUser, ...newUserData };
+      localStorage.setItem('user', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
@@ -103,7 +113,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, error, login, register, logout, setError }}
+      value={{ user, loading, error, login, register, logout, setError, updateUser }}
     >
       {children}
     </AuthContext.Provider>

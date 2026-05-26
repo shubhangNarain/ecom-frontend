@@ -3,18 +3,118 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
+import { useToast } from '../context/ToastContext';
 import { API_BASE_URL } from '../lib/config';
 import { User, LogOut, Package, Heart, ShoppingBag, Shield, Mail, Calendar } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { COUNTRIES } from './Checkout';
 
 export default function Profile() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const { wishlist, clearWishlist } = useWishlist();
   const { cartCount, clearCart } = useCart();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const [orderCount, setOrderCount] = useState(0);
   const [loadingOrders, setLoadingOrders] = useState(true);
+
+  // Form toggles
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+
+  // Address Form State
+  const [addressData, setAddressData] = useState({
+    address: user?.shippingAddress?.address || '',
+    city: user?.shippingAddress?.city || '',
+    zip: user?.shippingAddress?.zip || '',
+    country: user?.shippingAddress?.country || 'United States',
+    phone: user?.shippingAddress?.phone || '',
+  });
+
+  // Password Form State
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmNewPassword: '',
+  });
+
+  const [isUpdatingAddress, setIsUpdatingAddress] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+
+  // Keep address form prefilled from user state updates
+  useEffect(() => {
+    if (user?.shippingAddress) {
+      setAddressData({
+        address: user.shippingAddress.address || '',
+        city: user.shippingAddress.city || '',
+        zip: user.shippingAddress.zip || '',
+        country: user.shippingAddress.country || 'United States',
+        phone: user.shippingAddress.phone || '',
+      });
+    }
+  }, [user]);
+
+  const handleUpdateAddress = async (e) => {
+    e.preventDefault();
+    setIsUpdatingAddress(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ shippingAddress: addressData }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update address');
+      }
+      updateUser({ shippingAddress: data.shippingAddress });
+      showToast('Shipping address updated successfully!', 'success');
+      setShowAddressForm(false);
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setIsUpdatingAddress(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    if (passwordData.newPassword !== passwordData.confirmNewPassword) {
+      showToast('New passwords do not match!', 'error');
+      return;
+    }
+    setIsUpdatingPassword(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/v1/users/me/change-password`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to change password');
+      }
+      showToast('Password changed successfully!', 'success');
+      setPasswordData({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
+      setShowPasswordForm(false);
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) {
@@ -164,19 +264,188 @@ export default function Profile() {
                 Profile Settings
               </h4>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                  <div>
-                    <h5 className="font-display font-bold text-xs text-black mb-0.5">Shipping Addresses</h5>
-                    <p className="text-[10px] text-gray-400">Manage your saved locations for quick checkout</p>
+                {/* Shipping Addresses Section */}
+                <div className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
+                  <div className="flex items-center justify-between p-4">
+                    <div>
+                      <h5 className="font-display font-bold text-xs text-black mb-0.5">Shipping Addresses</h5>
+                      <p className="text-[10px] text-gray-400">Manage your saved locations for quick checkout</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowAddressForm(!showAddressForm);
+                        setShowPasswordForm(false);
+                      }}
+                      className="text-[10px] bg-black hover:bg-accent hover:text-black font-bold px-3 py-1.5 rounded-lg text-white uppercase tracking-wider transition-colors cursor-pointer"
+                    >
+                      {showAddressForm ? 'Cancel' : 'Manage'}
+                    </button>
                   </div>
-                  <span className="text-[10px] bg-gray-200 font-bold px-2 py-0.5 rounded text-gray-500 uppercase">Coming Soon</span>
+
+                  <AnimatePresence>
+                    {showAddressForm && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="px-4 pb-6 pt-2 border-t border-gray-100/50 bg-white"
+                      >
+                        <form onSubmit={handleUpdateAddress} className="space-y-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label htmlFor="address-phone" className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Phone Number</label>
+                              <input
+                                type="tel"
+                                id="address-phone"
+                                required
+                                value={addressData.phone}
+                                onChange={(e) => setAddressData(prev => ({ ...prev, phone: e.target.value }))}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+                                placeholder="(555) 000-0000"
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor="address-country" className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Country / Region</label>
+                              <select
+                                id="address-country"
+                                value={addressData.country}
+                                onChange={(e) => setAddressData(prev => ({ ...prev, country: e.target.value }))}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+                              >
+                                {COUNTRIES.map((c) => (
+                                  <option key={c} value={c}>{c}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                          <div>
+                            <label htmlFor="address-street" className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Street Address</label>
+                            <input
+                              type="text"
+                              id="address-street"
+                              required
+                              value={addressData.address}
+                              onChange={(e) => setAddressData(prev => ({ ...prev, address: e.target.value }))}
+                              className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+                              placeholder="123 Main St, Apt 4B"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label htmlFor="address-city" className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">City</label>
+                              <input
+                                type="text"
+                                id="address-city"
+                                required
+                                value={addressData.city}
+                                onChange={(e) => setAddressData(prev => ({ ...prev, city: e.target.value }))}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+                                placeholder="New York"
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor="address-zip" className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">ZIP / Postal Code</label>
+                              <input
+                                type="text"
+                                id="address-zip"
+                                required
+                                value={addressData.zip}
+                                onChange={(e) => setAddressData(prev => ({ ...prev, zip: e.target.value }))}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+                                placeholder="10001"
+                              />
+                            </div>
+                          </div>
+                          <button
+                            type="submit"
+                            disabled={isUpdatingAddress}
+                            className="w-full mt-2 bg-black hover:bg-accent hover:text-black text-white py-3 rounded-xl font-display font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50 cursor-pointer"
+                          >
+                            {isUpdatingAddress ? 'Saving...' : 'Save Address'}
+                          </button>
+                        </form>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                  <div>
-                    <h5 className="font-display font-bold text-xs text-black mb-0.5">Password & Security</h5>
-                    <p className="text-[10px] text-gray-400">Keep your account secure with strong credentials</p>
+
+                {/* Password & Security Section */}
+                <div className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
+                  <div className="flex items-center justify-between p-4">
+                    <div>
+                      <h5 className="font-display font-bold text-xs text-black mb-0.5">Password & Security</h5>
+                      <p className="text-[10px] text-gray-400">Keep your account secure with strong credentials</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowPasswordForm(!showPasswordForm);
+                        setShowAddressForm(false);
+                      }}
+                      className="text-[10px] bg-black hover:bg-accent hover:text-black font-bold px-3 py-1.5 rounded-lg text-white uppercase tracking-wider transition-colors cursor-pointer"
+                    >
+                      {showPasswordForm ? 'Cancel' : 'Change'}
+                    </button>
                   </div>
-                  <span className="text-[10px] bg-gray-200 font-bold px-2 py-0.5 rounded text-gray-500 uppercase">Coming Soon</span>
+
+                  <AnimatePresence>
+                    {showPasswordForm && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="px-4 pb-6 pt-2 border-t border-gray-100/50 bg-white"
+                      >
+                        <form onSubmit={handleUpdatePassword} className="space-y-4">
+                          <div>
+                            <label htmlFor="curr-pass" className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Current Password</label>
+                            <input
+                              type="password"
+                              id="curr-pass"
+                              required
+                              value={passwordData.currentPassword}
+                              onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                              className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+                              placeholder="••••••••"
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="new-pass" className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">New Password (Min 6 chars)</label>
+                            <input
+                              type="password"
+                              id="new-pass"
+                              required
+                              minLength={6}
+                              value={passwordData.newPassword}
+                              onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                              className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+                              placeholder="••••••••"
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="confirm-pass" className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Confirm New Password</label>
+                            <input
+                              type="password"
+                              id="confirm-pass"
+                              required
+                              value={passwordData.confirmNewPassword}
+                              onChange={(e) => setPasswordData(prev => ({ ...prev, confirmNewPassword: e.target.value }))}
+                              className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+                              placeholder="••••••••"
+                            />
+                          </div>
+                          <button
+                            type="submit"
+                            disabled={isUpdatingPassword}
+                            className="w-full mt-2 bg-black hover:bg-accent hover:text-black text-white py-3 rounded-xl font-display font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50 cursor-pointer"
+                          >
+                            {isUpdatingPassword ? 'Updating...' : 'Change Password'}
+                          </button>
+                        </form>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             </div>
