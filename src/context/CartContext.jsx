@@ -100,10 +100,11 @@ export const CartProvider = ({ children }) => {
     setCart([]);
   };
 
-  // Reset fetch tracker when user logs out
+  // Reset fetch tracker and clear cart when user logs out
   useEffect(() => {
     if (!user) {
       setHasFetchedCart(false);
+      setCart([]);
     }
   }, [user]);
 

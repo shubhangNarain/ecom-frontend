@@ -92,10 +92,11 @@ export const WishlistProvider = ({ children }) => {
     setWishlist([]);
   };
 
-  // Reset fetch tracker when user logs out
+  // Reset fetch tracker and clear wishlist when user logs out
   useEffect(() => {
     if (!user) {
       setHasFetchedWishlist(false);
+      setWishlist([]);
     }
   }, [user]);
 
