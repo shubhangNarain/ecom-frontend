@@ -6,11 +6,13 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useToast } from '../context/ToastContext';
 
 export default function Navbar({ onSearch }) {
   const { cartCount, setIsCartOpen, clearCart } = useCart();
   const { user, logout } = useAuth();
   const { wishlist } = useWishlist();
+  const { showToast } = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -176,7 +178,7 @@ export default function Navbar({ onSearch }) {
             {/* User Avatar / Login */}
             {!user ? (
               <div className="relative">
-                <button onClick={() => navigate('/login')}>Login</button>
+                <button className='text-white bg-lime-400 box-border border border-transparent hover:bg-success-strong focus:ring-4 focus:ring-success-medium shadow-xs font-medium leading-5 rounded-full text-sm px-4 py-2.5 focus:outline-none' onClick={() => navigate('/login')}>Login</button>
               </div>
             ) : (
               <div className="relative">
@@ -257,6 +259,7 @@ export default function Navbar({ onSearch }) {
                             logout();
                             clearCart();
                             setUserMenuOpen(false);
+                            showToast('Logged out successfully.', 'info');
                           }}
                           className="w-full text-left px-4 py-2.5 text-sm text-red-500 font-bold hover:bg-red-50 transition-colors flex items-center gap-3"
                         >

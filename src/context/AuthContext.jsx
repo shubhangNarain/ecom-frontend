@@ -51,10 +51,10 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('token', data.token);
 
-      return true;
+      return { success: true };
     } catch (err) {
       setError(err.message);
-      return false;
+      return { success: false, error: err.message };
     }
   };
 
@@ -88,10 +88,10 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('token', data.token);
 
-      return true;
+      return { success: true };
     } catch (err) {
       setError(err.message);
-      return false;
+      return { success: false, error: err.message };
     }
   };
 

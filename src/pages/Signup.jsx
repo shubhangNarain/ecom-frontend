@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 export default function Signup() {
   const [name, setName] = useState('');
@@ -11,14 +12,18 @@ export default function Signup() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { register, error } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    const success = await register(name, email, password);
+    const result = await register(name, email, password);
     setIsSubmitting(false);
-    if (success) {
+    if (result.success) {
+      showToast('Account created successfully! Welcome to Jauter.', 'success');
       navigate('/'); // Go back to the previous page
+    } else {
+      showToast(result.error || 'Registration failed. Please try again.', 'error');
     }
   };
 

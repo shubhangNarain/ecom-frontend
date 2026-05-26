@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, Zap, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -10,14 +11,18 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login, error } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    const success = await login(email, password);
+    const result = await login(email, password);
     setIsSubmitting(false);
-    if (success) {
+    if (result.success) {
+      showToast('Logged in successfully! Welcome back.', 'success');
       navigate('/'); // Go back to the previous page (e.g. cart or home)
+    } else {
+      showToast(result.error || 'Login failed. Please check your credentials.', 'error');
     }
   };
 
