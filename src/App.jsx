@@ -38,6 +38,39 @@ function App() {
     window.scrollTo(0, 0);
   }, [pathname]);
 
+  // Dynamic page title on route change
+  useEffect(() => {
+    const getPageTitle = (path) => {
+      if (path === '/') return 'Home';
+      if (path === '/shop') return 'Shop';
+      if (path === '/new-arrivals') return 'New Arrivals';
+      if (path === '/sale') return 'Sale';
+      if (path === '/about') return 'About';
+      if (path === '/search') return 'Search';
+      if (path === '/login') return 'Sign In';
+      if (path === '/signup') return 'Sign Up';
+      if (path === '/checkout') return 'Checkout';
+      if (path === '/order-confirmation') return 'Order Confirmed';
+      if (path === '/orders') return 'My Orders';
+      if (path === '/profile') return 'My Profile';
+      if (path === '/wishlist') return 'Wishlist';
+      if (path === '/admin') return 'Admin Dashboard';
+      if (path.startsWith('/product/')) return 'Product Details';
+
+      // Fallback: parse pathname (e.g. /some-page -> Some Page)
+      const parts = path.split('/').filter(Boolean);
+      if (parts.length === 0) return 'Jauter';
+      const lastPart = parts[parts.length - 1];
+      return lastPart
+        .split('-')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    };
+
+    const title = getPageTitle(pathname);
+    document.title = `${title} | Jauter`;
+  }, [pathname]);
+
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.2,
