@@ -69,6 +69,7 @@ export default function Checkout() {
   const [appliedDiscount, setAppliedDiscount] = useState(0); // in percentage
   const [promoError, setPromoError] = useState('');
   const [promoSuccess, setPromoSuccess] = useState('');
+  const [selectedMethod, setSelectedMethod] = useState('mock'); // 'mock' or 'razorpay'
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -97,6 +98,21 @@ export default function Checkout() {
     }
   };
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.phone || !formData.address || !formData.city || !formData.zip) {
@@ -109,89 +125,235 @@ export default function Checkout() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/v1/orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          items: cart.map((item) => ({
-            product: item._id || String(item.id),
-            quantity: item.quantity,
-          })),
-          shippingAddress: {
-            fullName: formData.name,
-            phone: formData.phone,
-            street: formData.address,
-            city: formData.city,
-            postalCode: formData.zip,
-            country: formData.country,
-            state: "",
+
+      if (selectedMethod === 'mock') {
+        const response = await fetch(`${API_BASE_URL}/api/v1/orders`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
           },
-          payment: {
-            method: 'cod',
-            status: 'pending',
-            razorpayPaymentId: `MOCK_PAY_${Math.random().toString(36).substring(2, 9).toUpperCase()}`,
-          },
-          shippingCharge: shipping,
-          discount: discountAmount,
-        }),
-      });
+          body: JSON.stringify({
+            items: cart.map((item) => ({
+              product: item._id || String(item.id),
+              quantity: item.quantity,
+            })),
+            shippingAddress: {
+              fullName: formData.name,
+              phone: formData.phone,
+              street: formData.address,
+              city: formData.city,
+              postalCode: formData.zip,
+              country: formData.country,
+              state: "",
+            },
+            payment: {
+              method: 'cod',
+              status: 'pending',
+              razorpayPaymentId: `MOCK_PAY_${Math.random().toString(36).substring(2, 9).toUpperCase()}`,
+            },
+            shippingCharge: shipping,
+            discount: discountAmount,
+          }),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to place order');
-      }
-
-      // Order created successfully
-      setIsOrderPlaced(true);
-      clearCart();
-
-      // Update local storage user context with the shipping address
-      updateUser({
-        shippingAddress: {
-          address: formData.address,
-          city: formData.city,
-          zip: formData.zip,
-          country: formData.country,
-          phone: formData.phone,
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to place order');
         }
-      });
 
-      // Normalize backend response for OrderConfirmation page
-      const normalizedOrder = {
-        _id: data._id,
-        createdAt: data.createdAt,
-        amount: data.grandTotal,
-        shippingAddress: {
-          name: data.shippingAddress.fullName,
-          email: formData.email,
-          phone: data.shippingAddress.phone,
-          address: data.shippingAddress.street,
-          city: data.shippingAddress.city,
-          zip: data.shippingAddress.postalCode,
-          country: data.shippingAddress.country,
-        },
-        items: data.items.map((item) => {
-          const cartItem = cart.find(c => (c._id === item.product || String(c.id) === String(item.product))) || {};
-          return {
-            id: cartItem.id || item.product,
-            name: item.title,
-            image: item.thumbnail,
-            price: String(item.price),
-            quantity: item.quantity,
-          };
-        }),
-      };
+        setIsOrderPlaced(true);
+        clearCart();
 
-      localStorage.setItem('latest_order', JSON.stringify(normalizedOrder));
-      navigate('/order-confirmation', { state: { order: normalizedOrder } });
+        updateUser({
+          shippingAddress: {
+            address: formData.address,
+            city: formData.city,
+            zip: formData.zip,
+            country: formData.country,
+            phone: formData.phone,
+          }
+        });
+
+        const normalizedOrder = {
+          _id: data._id,
+          createdAt: data.createdAt,
+          amount: data.grandTotal,
+          shippingAddress: {
+            name: data.shippingAddress.fullName,
+            email: formData.email,
+            phone: data.shippingAddress.phone,
+            address: data.shippingAddress.street,
+            city: data.shippingAddress.city,
+            zip: data.shippingAddress.postalCode,
+            country: data.shippingAddress.country,
+          },
+          items: data.items.map((item) => {
+            const cartItem = cart.find(c => (c._id === item.product || String(c.id) === String(item.product))) || {};
+            return {
+              id: cartItem.id || item.product,
+              name: item.title,
+              image: item.thumbnail,
+              price: String(item.price),
+              quantity: item.quantity,
+            };
+          }),
+        };
+
+        localStorage.setItem('latest_order', JSON.stringify(normalizedOrder));
+        navigate('/order-confirmation', { state: { order: normalizedOrder } });
+      } else {
+        // Razorpay flow
+        const scriptLoaded = await loadRazorpayScript();
+        if (!scriptLoaded) {
+          throw new Error('Razorpay SDK failed to load. Please check your internet connection.');
+        }
+
+        const keyResponse = await fetch(`${API_BASE_URL}/api/v1/orders/razorpay-key`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const keyData = await keyResponse.json();
+        if (!keyResponse.ok || !keyData.key) {
+          throw new Error(keyData.message || 'Could not retrieve payment configurations.');
+        }
+
+        const response = await fetch(`${API_BASE_URL}/api/v1/orders`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            items: cart.map((item) => ({
+              product: item._id || String(item.id),
+              quantity: item.quantity,
+            })),
+            shippingAddress: {
+              fullName: formData.name,
+              phone: formData.phone,
+              street: formData.address,
+              city: formData.city,
+              postalCode: formData.zip,
+              country: formData.country,
+              state: "",
+            },
+            payment: {
+              method: 'razorpay',
+              status: 'pending',
+            },
+            shippingCharge: shipping,
+            discount: discountAmount,
+          }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to initialize order');
+        }
+
+        setIsSubmitting(false); // Enable interactions while the gateway modal is open
+
+        const options = {
+          key: keyData.key,
+          amount: data.razorpayOrder.amount,
+          currency: data.razorpayOrder.currency,
+          name: "GFG E-Commerce",
+          description: `Order Payment for ${data._id}`,
+          order_id: data.razorpayOrder.id,
+          handler: async function (paymentResponse) {
+            setIsSubmitting(true);
+            try {
+              const verifyResponse = await fetch(`${API_BASE_URL}/api/v1/orders/verify`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  razorpay_order_id: paymentResponse.razorpay_order_id,
+                  razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                  razorpay_signature: paymentResponse.razorpay_signature,
+                }),
+              });
+
+              const verifyData = await verifyResponse.json();
+              if (!verifyResponse.ok) {
+                throw new Error(verifyData.message || 'Payment verification failed');
+              }
+
+              setIsOrderPlaced(true);
+              clearCart();
+
+              updateUser({
+                shippingAddress: {
+                  address: formData.address,
+                  city: formData.city,
+                  zip: formData.zip,
+                  country: formData.country,
+                  phone: formData.phone,
+                }
+              });
+
+              const normalizedOrder = {
+                _id: verifyData.order._id,
+                createdAt: verifyData.order.createdAt,
+                amount: verifyData.order.grandTotal,
+                shippingAddress: {
+                  name: verifyData.order.shippingAddress.fullName,
+                  email: formData.email,
+                  phone: verifyData.order.shippingAddress.phone,
+                  address: verifyData.order.shippingAddress.street,
+                  city: verifyData.order.shippingAddress.city,
+                  zip: verifyData.order.shippingAddress.postalCode,
+                  country: verifyData.order.shippingAddress.country,
+                },
+                items: verifyData.order.items.map((item) => {
+                  const cartItem = cart.find(c => (c._id === item.product || String(c.id) === String(item.product))) || {};
+                  return {
+                    id: cartItem.id || item.product,
+                    name: item.title,
+                    image: item.thumbnail,
+                    price: String(item.price),
+                    quantity: item.quantity,
+                  };
+                }),
+              };
+
+              localStorage.setItem('latest_order', JSON.stringify(normalizedOrder));
+              navigate('/order-confirmation', { state: { order: normalizedOrder } });
+            } catch (err) {
+              setError(err.message);
+            } finally {
+              setIsSubmitting(false);
+            }
+          },
+          prefill: {
+            name: formData.name,
+            email: formData.email,
+            contact: formData.phone,
+          },
+          theme: {
+            color: "#000000",
+          },
+          modal: {
+            ondismiss: function () {
+              setIsSubmitting(false);
+            }
+          }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      }
     } catch (err) {
       setError(err.message);
     } finally {
-      setIsSubmitting(false);
+      // In the Razorpay flow, we handle isSubmitting manually in callbacks,
+      // so only set isSubmitting to false here if we didn't open the modal or threw early.
+      if (selectedMethod === 'mock') {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -337,16 +499,62 @@ export default function Checkout() {
 
               <div className="pt-6 border-t border-gray-100">
                 <h3 className="font-display font-bold text-black text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <CreditCard size={18} /> Payment Information
+                  <CreditCard size={18} /> Payment Method
                 </h3>
-                <p className="text-sm text-gray-400 mb-4">
-                  This is a secure mock checkout. Your card will not be charged.
-                </p>
-                <div className="bg-gray-50 border border-gray-100 rounded-2xl p-6 flex items-center justify-between">
-                  <span className="font-display text-sm font-bold text-black flex items-center gap-2">
-                    💳 Simulated Payment Sandbox
-                  </span>
-                  <span className="text-xs bg-accent font-bold px-3 py-1 rounded-full text-black">Active</span>
+                <div className="space-y-4 mb-6">
+                  {/* Mock Payment Option */}
+                  <label className={`flex items-center justify-between p-5 rounded-2xl border cursor-pointer transition-all ${
+                    selectedMethod === 'mock' 
+                      ? 'border-black bg-gray-50/50' 
+                      : 'border-gray-100 bg-white hover:border-gray-200'
+                  }`}>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="mock"
+                        checked={selectedMethod === 'mock'}
+                        onChange={() => setSelectedMethod('mock')}
+                        className="w-4 h-4 text-black accent-black focus:ring-black"
+                      />
+                      <div>
+                        <span className="font-display text-sm font-bold text-black block">
+                          💳 Simulated Sandbox Payment
+                        </span>
+                        <span className="text-[11px] text-gray-400">Instant checkout, mock transaction</span>
+                      </div>
+                    </div>
+                    {selectedMethod === 'mock' && (
+                      <span className="text-[10px] bg-accent font-bold px-2.5 py-1 rounded-full text-black uppercase tracking-wider">Active</span>
+                    )}
+                  </label>
+
+                  {/* Razorpay Option */}
+                  <label className={`flex items-center justify-between p-5 rounded-2xl border cursor-pointer transition-all ${
+                    selectedMethod === 'razorpay' 
+                      ? 'border-black bg-gray-50/50' 
+                      : 'border-gray-100 bg-white hover:border-gray-200'
+                  }`}>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="razorpay"
+                        checked={selectedMethod === 'razorpay'}
+                        onChange={() => setSelectedMethod('razorpay')}
+                        className="w-4 h-4 text-black accent-black focus:ring-black"
+                      />
+                      <div>
+                        <span className="font-display text-sm font-bold text-black block">
+                          🚀 Pay via Razorpay
+                        </span>
+                        <span className="text-[11px] text-gray-400">Cards, UPI, Netbanking, Wallets</span>
+                      </div>
+                    </div>
+                    {selectedMethod === 'razorpay' && (
+                      <span className="text-[10px] bg-accent font-bold px-2.5 py-1 rounded-full text-black uppercase tracking-wider">Active</span>
+                    )}
+                  </label>
                 </div>
               </div>
 
