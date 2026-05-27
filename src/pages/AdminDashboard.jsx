@@ -118,6 +118,7 @@ export default function AdminDashboard() {
           phone: order.shippingAddress?.phone || '',
           street: order.shippingAddress?.street || order.shippingAddress?.address || '',
           city: order.shippingAddress?.city || '',
+          state: order.shippingAddress?.state || '',
           postalCode: order.shippingAddress?.postalCode || order.shippingAddress?.zip || '',
           country: order.shippingAddress?.country || ''
         };
@@ -830,7 +831,7 @@ export default function AdminDashboard() {
                                     <h4 className="text-[9px] font-black uppercase tracking-wider text-gray-400 mb-3">Delivery Destination</h4>
                                     <p className="text-xs font-bold text-black">{order.shippingAddress?.fullName}</p>
                                     <p className="text-xs text-gray-500 mt-1">{order.shippingAddress?.street}</p>
-                                    <p className="text-xs text-gray-500 mt-0.5">{order.shippingAddress?.city}, {order.shippingAddress?.postalCode}</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">{order.shippingAddress?.city}, {order.shippingAddress?.state ? `${order.shippingAddress.state}, ` : ''}{order.shippingAddress?.postalCode}</p>
                                     <p className="text-xs text-gray-500 mt-0.5">{order.shippingAddress?.country}</p>
                                     <p className="text-xs text-gray-500 font-bold mt-2">📞 {order.shippingAddress?.phone}</p>
                                   </div>

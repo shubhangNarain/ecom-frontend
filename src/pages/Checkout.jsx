@@ -61,6 +61,7 @@ export default function Checkout() {
     phone: user?.shippingAddress?.phone || '',
     address: user?.shippingAddress?.address || '',
     city: user?.shippingAddress?.city || '',
+    state: user?.shippingAddress?.state || '',
     country: user?.shippingAddress?.country || 'United States',
     zip: user?.shippingAddress?.zip || '',
   });
@@ -72,6 +73,7 @@ export default function Checkout() {
   const [selectedMethod, setSelectedMethod] = useState('mock'); // 'mock' or 'razorpay'
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
 
   // Calculations
   const discountAmount = (cartTotal * appliedDiscount) / 100;
@@ -143,9 +145,9 @@ export default function Checkout() {
               phone: formData.phone,
               street: formData.address,
               city: formData.city,
+              state: formData.state,
               postalCode: formData.zip,
               country: formData.country,
-              state: "",
             },
             payment: {
               method: 'cod',
@@ -170,6 +172,7 @@ export default function Checkout() {
           shippingAddress: {
             address: formData.address,
             city: formData.city,
+            state: formData.state,
             zip: formData.zip,
             country: formData.country,
             phone: formData.phone,
@@ -186,6 +189,7 @@ export default function Checkout() {
             phone: data.shippingAddress.phone,
             address: data.shippingAddress.street,
             city: data.shippingAddress.city,
+            state: data.shippingAddress.state,
             zip: data.shippingAddress.postalCode,
             country: data.shippingAddress.country,
           },
@@ -234,9 +238,9 @@ export default function Checkout() {
               phone: formData.phone,
               street: formData.address,
               city: formData.city,
+              state: formData.state,
               postalCode: formData.zip,
               country: formData.country,
-              state: "",
             },
             payment: {
               method: 'razorpay',
@@ -289,6 +293,7 @@ export default function Checkout() {
                 shippingAddress: {
                   address: formData.address,
                   city: formData.city,
+                  state: formData.state,
                   zip: formData.zip,
                   country: formData.country,
                   phone: formData.phone,
@@ -305,6 +310,7 @@ export default function Checkout() {
                   phone: verifyData.order.shippingAddress.phone,
                   address: verifyData.order.shippingAddress.street,
                   city: verifyData.order.shippingAddress.city,
+                  state: verifyData.order.shippingAddress.state,
                   zip: verifyData.order.shippingAddress.postalCode,
                   country: verifyData.order.shippingAddress.country,
                 },
@@ -468,7 +474,7 @@ export default function Checkout() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div>
                   <label htmlFor="city" className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">City</label>
                   <input
@@ -480,6 +486,19 @@ export default function Checkout() {
                     onChange={handleInputChange}
                     className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
                     placeholder="New York"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="state" className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">State / Province</label>
+                  <input
+                    type="text"
+                    id="state"
+                    name="state"
+                    required
+                    value={formData.state}
+                    onChange={handleInputChange}
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+                    placeholder="NY"
                   />
                 </div>
                 <div>

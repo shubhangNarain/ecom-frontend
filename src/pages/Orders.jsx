@@ -37,13 +37,27 @@ export default function Orders() {
         const normalizedOrders = orderList.map((order) => ({
           _id: order._id,
           createdAt: order.createdAt,
-          amount: order.grandTotal,
+          amount: (() => {
+            if (order.grandTotal !== undefined && order.grandTotal !== null) {
+              return Number(order.grandTotal);
+            }
+            if (order.amount !== undefined && order.amount !== null) {
+              return Number(order.amount);
+            }
+            const itemsTotal = (order.items || []).reduce((sum, i) => sum + (Number(i.price) * i.quantity), 0);
+            const discount = Number(order.discount || 0);
+            const shipping = Number(order.shippingCharge || 0);
+            const subtotalAfterDiscount = itemsTotal - discount;
+            const tax = subtotalAfterDiscount * 0.08;
+            return subtotalAfterDiscount + shipping + tax;
+          })(),
           status: order.status,
           paymentId: order.payment?.razorpayPaymentId || 'N/A',
           shippingAddress: {
             name: order.shippingAddress.fullName,
             address: order.shippingAddress.street,
             city: order.shippingAddress.city,
+            state: order.shippingAddress.state || '',
             zip: order.shippingAddress.postalCode,
             country: order.shippingAddress.country,
           },
@@ -205,7 +219,7 @@ export default function Orders() {
                 {/* Shipping Destination Footer details */}
                 <div className="px-8 py-4 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
                   <span className="font-medium">
-                    Shipped to: <span className="font-bold text-gray-600">{order.shippingAddress.name}</span> &middot; {order.shippingAddress.address}, {order.shippingAddress.city}
+                    Shipped to: <span className="font-bold text-gray-600">{order.shippingAddress.name}</span> &middot; {order.shippingAddress.address}, {order.shippingAddress.city}, {order.shippingAddress.state ? `${order.shippingAddress.state} ` : ''}{order.shippingAddress.zip}
                   </span>
                   <span className="font-medium hidden sm:inline">
                     Payment Reference: <span className="font-mono">{order.paymentId}</span>

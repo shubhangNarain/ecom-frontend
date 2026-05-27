@@ -124,7 +124,7 @@ export default function OrderConfirmation() {
               </h3>
               <p className="text-sm text-gray-700 leading-relaxed">
                 {order?.shippingAddress?.address || 'N/A'}, <br />
-                {order?.shippingAddress?.city || 'N/A'}, {order?.shippingAddress?.zip || ''} <br />
+                {order?.shippingAddress?.city || 'N/A'}, {order?.shippingAddress?.state ? `${order.shippingAddress.state}, ` : ''}{order?.shippingAddress?.zip || ''} <br />
                 {order?.shippingAddress?.country || ''}
               </p>
             </div>

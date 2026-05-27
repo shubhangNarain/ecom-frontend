@@ -27,6 +27,7 @@ export default function Profile() {
   const [addressData, setAddressData] = useState({
     address: user?.shippingAddress?.address || '',
     city: user?.shippingAddress?.city || '',
+    state: user?.shippingAddress?.state || '',
     zip: user?.shippingAddress?.zip || '',
     country: user?.shippingAddress?.country || 'United States',
     phone: user?.shippingAddress?.phone || '',
@@ -42,12 +43,14 @@ export default function Profile() {
   const [isUpdatingAddress, setIsUpdatingAddress] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
+
   // Keep address form prefilled from user state updates
   useEffect(() => {
     if (user?.shippingAddress) {
       setAddressData({
         address: user.shippingAddress.address || '',
         city: user.shippingAddress.city || '',
+        state: user.shippingAddress.state || '',
         zip: user.shippingAddress.zip || '',
         country: user.shippingAddress.country || 'United States',
         phone: user.shippingAddress.phone || '',
@@ -331,7 +334,7 @@ export default function Profile() {
                               placeholder="123 Main St, Apt 4B"
                             />
                           </div>
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-3 gap-4">
                             <div>
                               <label htmlFor="address-city" className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">City</label>
                               <input
@@ -342,6 +345,18 @@ export default function Profile() {
                                 onChange={(e) => setAddressData(prev => ({ ...prev, city: e.target.value }))}
                                 className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
                                 placeholder="New York"
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor="address-state" className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">State / Province</label>
+                              <input
+                                type="text"
+                                id="address-state"
+                                required
+                                value={addressData.state}
+                                onChange={(e) => setAddressData(prev => ({ ...prev, state: e.target.value }))}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+                                placeholder="NY"
                               />
                             </div>
                             <div>
